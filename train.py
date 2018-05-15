@@ -73,10 +73,6 @@ Xtest, ytest = load_set(glove, path='./sts/semeval-sts/2016')
 Xtest[0], Xtest[1], ytest = shuffle(Xtest[0], Xtest[1], ytest)
 #[1186, 句长]
 
-
-
-# max_sent_length = max([len(x) for SS in Xtrain for x in SS])
-# print max_sent_length #最大的句子长度为84
 #-------------------------------------Loading finished----------------------------------------------#
 
 #-------------------------------------training the network----------------------------------------------#
@@ -95,22 +91,6 @@ with tf.Session() as sess:
         input_x1 = tf.reshape(s0_embed, [-1, conf.sentence_length, conf.embedding_dim, 1])
         input_x2 = tf.reshape(s1_embed, [-1, conf.sentence_length, conf.embedding_dim, 1])
         input_y = tf.reshape(input_3, [-1, conf.num_classes])
-
-    # sent1_unstack = tf.unstack(input_x1, axis=1)
-    # sent2_unstack = tf.unstack(input_x2, axis=1)
-    # D = []
-    # for i in range(len(sent1_unstack)):
-    #     d = []
-    #     for j in range(len(sent2_unstack)):
-    #         dis = compute_cosine_distance(sent1_unstack[i], sent2_unstack[j])
-    #         d.append(dis)
-    #     D.append(d)
-    # D = tf.reshape(D, [-1, len(sent1_unstack), len(sent2_unstack), 1])
-    # A = [tf.nn.softmax(tf.expand_dims(tf.reduce_sum(D, axis=i), 2)) for i in [2, 1]]
-    #
-    # print A[1]
-    # print A[1] * input_x2
-    # atten_embed = tf.concat([input_x2, A[1] * input_x2], 2)
 
     setence_model = MPCNN_Layer(conf.num_classes, conf.embedding_dim, filter_size,
                                 [conf.num_filters_A, conf.num_filters_B], conf.n_hidden,
@@ -136,12 +116,6 @@ with tf.Session() as sess:
     dev_summary_op = tf.summary.merge([loss_summary, acc_summary])
     dev_summary_dir = os.path.join(out_dir, "summaries", "dev")
     dev_summary_writer = tf.summary.FileWriter(dev_summary_dir, sess.graph)
-    #
-    # checkpoint_dir = os.path.abspath(os.path.join(out_dir, "checkpoints"))
-    # checkpoint_prefix = os.path.join(checkpoint_dir, "model")
-    # if not os.path.exists(checkpoint_dir):
-    #     os.makedirs(checkpoint_dir)
-    # saver = tf.train.Saver(tf.global_variables(), max_to_keep=conf.num_checkpoints)
 
     def train(x1_batch, x2_batch, y_batch):
         """
@@ -201,17 +175,5 @@ with tf.Session() as sess:
             logger.info("dev_loss {:g}, dev_acc {:g}, num_dev_batches {:g}".format(total_dev_loss, total_dev_accuracy,
                                                                              len(ytest) / conf.batch_size))
             # train_summary_writer.add_summary(summaries)
-
-    #sess = tf_debug.LocalCLIDebugWrapperSession(sess)
-    # for i in range(conf.num_epochs):
-    #     training_batch = zip(range(0, len(Xtrain[0]), conf.batch_size),
-    #                          range(conf.batch_size, len(Xtrain[0]) + 1, conf.batch_size))
-    #     for start, end in training_batch:
-    #         feed_dict = {input_1: Xtrain[0][start:end], input_2: Xtrain[1][start:end],
-    #                      dropout_keep_prob: 0.5, input_3: ytrain[start:end]}
-    #         print start
-    #         #assert all(x.shape == (100, 100) for x in Xtrain[0][start:end])
-    #         loss, _ = sess.run(train_step, feed_dict=feed_dict)
-    #         print("Epoch:", '%04d' % (i + 1), "cost=", "{:.9f}".format(loss))
 
     logger.info("Optimization Finished!")
